@@ -2,8 +2,8 @@ name: morning
 
 on:
   schedule:
-    # UTC 0:00 = 北京时间 8:00（每天早上推送）
-    - cron: '0 0 * * *'
+    # UTC 0:00 = 北京时间 7:00（每天早上推送）
+    - cron: '0 23 * * *'
   workflow_dispatch:  # 允许手动触发
 
 jobs:
