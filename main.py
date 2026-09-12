@@ -43,7 +43,84 @@ FALLBACK_WORDS = [
     "所有的美好都与你环环相扣。",
     "见你一眼，万物不及。",
     "你是我余生的欢喜。",
+    "愿你眼里有光，心中有爱，目光所及皆是美好。",
+    "你笑起来的样子，是我见过最美的风景。",
+    "想把世界上最好的都给你，却发现世界上最好的就是你。",
+    "你是我漫漫长夜里的那颗星，照亮我所有的路。",
+    "往后余生，风雪是你，平淡是你，清贫是你，荣华是你。",
+    "我喜欢你，像风走了八千里，不问归期。",
+    "愿你三冬暖，愿你春不寒，愿你天黑有灯，下雨有伞。",
+    "你是我藏在云层里的月亮，也是我穷极一生寻找的宝藏。",
+    "所有的温柔眷恋都是对你灿若星辰的喜欢。",
+    "你是我纸短情长的雨季，也是我往后余生的晴空万里。",
+    "喜欢你，是心动的感觉，是藏不住的欢喜。",
+    "愿你被这个世界温柔以待，愿所有美好都如期而至。",
+    "你是我心头的朱砂痣，也是我窗前的白月光。",
+    "山水一程，三生有幸，遇见你真好。",
+    "我想和你一起，把日子过成诗。",
+    "你的名字，是我见过最短的情诗。",
 ]
+
+
+# 下雨提醒语（天气含"雨"时随机选一条）
+RAIN_TIPS = [
+    "今天有雨，出门记得带伞哦～",
+    "外面下雨啦，别淋雨，会感冒的。",
+    "今天下雨，路上注意安全，慢点走。",
+    "雨天路滑，开车骑车都要小心呀。",
+    "下雨了，记得带伞，别让自己淋湿了。",
+]
+
+# 不下雨的温馨提醒
+SUNNY_TIPS = [
+    "今天不下雨，可以放心出门啦～",
+    "今天天气不错，适合出去走走。",
+    "无雨的一天，也要开开心心的哦。",
+    "今天没雨，记得防晒呀。",
+]
+
+
+def get_greeting():
+    """根据当前时间返回时段问候语"""
+    hour = datetime.now().hour
+    if 5 <= hour < 9:
+        return random.choice([
+            "早上好呀，新的一天开始啦～",
+            "早安，今天也要元气满满哦！",
+            "起床啦，美好的一天从现在开始。",
+        ])
+    elif 9 <= hour < 12:
+        return random.choice([
+            "上午好，记得吃早餐哦～",
+            "上午好呀，今天也要加油！",
+        ])
+    elif 12 <= hour < 14:
+        return random.choice([
+            "中午好，该吃饭啦～",
+            "午安，记得午休一下哦。",
+        ])
+    elif 14 <= hour < 18:
+        return random.choice([
+            "下午好，困了就喝杯咖啡吧～",
+            "下午好呀，再坚持一下就下班啦。",
+        ])
+    elif 18 <= hour < 22:
+        return random.choice([
+            "晚上好，今天辛苦啦～",
+            "晚上好，记得吃晚饭哦。",
+        ])
+    else:
+        return random.choice([
+            "夜深了，早点休息呀～",
+            "晚安，做个好梦。",
+        ])
+
+
+def get_rain_tip(weather):
+    """根据天气描述返回下雨提醒"""
+    if "雨" in weather:
+        return random.choice(RAIN_TIPS)
+    return random.choice(SUNNY_TIPS)
 
 
 def get_weather():
@@ -148,10 +225,10 @@ def main():
         # 数据只获取一次，复用给所有用户
         wea, temperature = get_weather()
         data = {
+            "greeting": {"value": get_greeting(), "color": "#FF6B6B"},
             "weather": {"value": wea},
             "temperature": {"value": temperature},
-            "love_days": {"value": get_count()},
-            "birthday_left": {"value": get_birthday()},
+            "rain_tip": {"value": get_rain_tip(wea), "color": "#4ECDC4"},
             "words": {"value": get_words(), "color": get_random_color()},
         }
         log.info("推送数据: %s", data)
