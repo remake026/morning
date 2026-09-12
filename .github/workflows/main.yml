@@ -1,32 +1,38 @@
 name: morning
+
 on:
   schedule:
-  - cron:  '0 0 * * *'
-  workflow_dispatch:
+    # UTC 0:00 = 北京时间 8:00（每天早上推送）
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   send_message:
     runs-on: ubuntu-latest
     name: send morning to your girlfriend
-
     steps:
-    - name: checkout
-      uses: actions/checkout@v3
-      with:
-        ref: master
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
 
-    - name: sender
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-        architecture: 'x64'
-    - run: pip install -r ./requirements.txt && python ./main.py
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+          cache: 'pip'  # 缓存 pip 依赖，加快运行速度
 
-    env:
-      APP_ID: ${{ secrets.APP_ID }}
-      APP_SECRET: ${{ secrets.APP_SECRET }}
-      TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
-      USER_ID: ${{ secrets.USER_ID }}
-      START_DATE: ${{ secrets.START_DATE }}
-      BIRTHDAY: ${{ secrets.BIRTHDAY }}
-      CITY: ${{ secrets.CITY }}
+      - name: install dependencies
+        run: pip install -r ./requirements.txt
+
+      - name: send message
+        run: python ./main.py
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
+          USER_ID: ${{ secrets.USER_ID }}
+          START_DATE: ${{ secrets.START_DATE }}
+          BIRTHDAY: ${{ secrets.BIRTHDAY }}
+          CITY: ${{ secrets.CITY }}
