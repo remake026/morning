@@ -24,7 +24,8 @@ CITY = os.getenv("CITY", "北京")
 BIRTHDAY = os.getenv("BIRTHDAY", "01-01")
 APP_ID = os.getenv("APP_ID", "")
 APP_SECRET = os.getenv("APP_SECRET", "")
-USER_ID = os.getenv("USER_ID", "")
+# USER_ID 支持多个 openid，用英文逗号分隔，例如：openid1,openid2,openid3
+USER_IDS = [uid.strip() for uid in os.getenv("USER_ID", "").split(",") if uid.strip()]
 TEMPLATE_ID = os.getenv("TEMPLATE_ID", "")
 
 # 通用请求头（模拟浏览器，避免被部分 API 拒绝）
@@ -177,14 +178,18 @@ def get_random_color():
 
 def main():
     # 关键配置校验
-    if not all([APP_ID, APP_SECRET, USER_ID, TEMPLATE_ID]):
-        log.error("缺少必要配置：APP_ID / APP_SECRET / USER_ID / TEMPLATE_ID")
+    if not all([APP_ID, APP_SECRET, TEMPLATE_ID]):
+        log.error("缺少必要配置：APP_ID / APP_SECRET / TEMPLATE_ID")
+        return
+    if not USER_IDS:
+        log.error("缺少必要配置：USER_ID（请填写至少一个 openid，多个用逗号分隔）")
         return
 
     try:
         client = WeChatClient(APP_ID, APP_SECRET)
         wm = WeChatMessage(client)
 
+        # 数据只获取一次，复用给所有用户
         wea, temperature = get_weather()
         data = {
             "weather": {"value": wea},
@@ -194,8 +199,14 @@ def main():
             "words": {"value": get_words(), "color": get_random_color()},
         }
         log.info("推送数据: %s", data)
-        res = wm.send_template(USER_ID, TEMPLATE_ID, data)
-        log.info("推送结果: %s", res)
+
+        # 逐个发送，单个失败不影响其他用户
+        for user_id in USER_IDS:
+            try:
+                res = wm.send_template(user_id, TEMPLATE_ID, data)
+                log.info("推送给 %s 成功: %s", user_id, res)
+            except Exception as e:
+                log.error("推送给 %s 失败: %s", user_id, e, exc_info=True)
     except Exception as e:
         log.error("推送过程中发生错误: %s", e, exc_info=True)
 
