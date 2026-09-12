@@ -19,7 +19,7 @@ log = logging.getLogger("morning")
 
 # 读取环境变量（提供默认值，避免 KeyError 直接崩溃）
 START_DATE = os.getenv("START_DATE", "2022-01-01")
-CITY = os.getenv("CITY", "北京")
+CITY = os.getenv("CITY", "绵阳,510703")
 BIRTHDAY = os.getenv("BIRTHDAY", "01-01")
 APP_ID = os.getenv("APP_ID", "")
 APP_SECRET = os.getenv("APP_SECRET", "")
