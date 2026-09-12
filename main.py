@@ -222,21 +222,41 @@ def main():
         client = WeChatClient(APP_ID, APP_SECRET)
         wm = WeChatMessage(client)
 
+        # ===== 调试：拉取微信端实际模板内容，确认 TEMPLATE_ID 对应的模板 =====
+        try:
+            tpl_list = client.template.get_all_private_template()
+            tpl_info = None
+            for t in tpl_list.get("template_list", []):
+                if t.get("template_id") == TEMPLATE_ID.strip():
+                    tpl_info = t
+                    break
+            if tpl_info:
+                log.info("[调试] 当前使用的模板标题: %s", tpl_info.get("title"))
+                log.info("[调试] 当前使用的模板内容: %s", tpl_info.get("content"))
+            else:
+                log.error("[调试] 找不到 TEMPLATE_ID=%s 对应的模板！模板列表有 %d 个", TEMPLATE_ID, len(tpl_list.get("template_list", [])))
+                for t in tpl_list.get("template_list", []):
+                    log.info("[调试] 可选模板: id=%s, title=%s, content=%s", t.get("template_id"), t.get("title"), t.get("content"))
+        except Exception as e:
+            log.warning("[调试] 拉取模板列表失败: %s", e)
+        # ===== 调试结束 =====
+
         # 数据只获取一次，复用给所有用户
         wea, temperature = get_weather()
         data = {
-            "greeting": {"value": get_greeting(), "color": "#FF6B6B"},
-            "weather": {"value": wea},
-            "temperature": {"value": temperature},
-            "rain_tip": {"value": get_rain_tip(wea), "color": "#4ECDC4"},
-            "words": {"value": get_words(), "color": get_random_color()},
+            # 使用公众号模板消息最常见的标准字段名，需与模板中的变量名一致。
+            "first": {"value": get_greeting(), "color": "#FF6B6B"},
+            "keyword1": {"value": wea, "color": "#173177"},
+            "keyword2": {"value": f"{temperature}℃", "color": "#173177"},
+            "keyword3": {"value": get_rain_tip(wea), "color": "#4ECDC4"},
+            "remark": {"value": get_words(), "color": get_random_color()},
         }
         log.info("推送数据: %s", data)
 
         # 逐个发送，单个失败不影响其他用户
         for user_id in USER_IDS:
             try:
-                res = wm.send_template(user_id, TEMPLATE_ID, data)
+                res = wm.send_template(user_id, TEMPLATE_ID.strip(), data)
                 log.info("推送给 %s 成功: %s", user_id, res)
             except Exception as e:
                 log.error("推送给 %s 失败: %s", user_id, e, exc_info=True)
