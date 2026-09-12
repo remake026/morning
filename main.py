@@ -8,7 +8,6 @@ import random
 import math
 import logging
 from datetime import date, datetime
-from urllib.parse import quote
 
 import requests
 from wechatpy import WeChatClient
@@ -34,52 +33,6 @@ HEADERS = {
                   "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
 
-# 天气描述中英文映射（wttr.in 的中文翻译不完整，用此表兜底）
-WEATHER_MAP = {
-    "sunny": "晴", "clear": "晴",
-    "partly cloudy": "局部多云",
-    "cloudy": "多云", "overcast": "阴",
-    "mist": "薄雾", "fog": "雾", "freezing fog": "冻雾",
-    "patchy rain possible": "可能有零星小雨",
-    "patchy snow possible": "可能有零星小雪",
-    "patchy sleet possible": "可能有零星雨夹雪",
-    "patchy freezing drizzle possible": "可能有零星冻毛毛雨",
-    "thundery outbreaks possible": "可能有雷阵雨",
-    "blowing snow": "吹雪", "blizzard": "暴风雪",
-    "freezing drizzle": "冻毛毛雨",
-    "light drizzle": "小毛毛雨",
-    "patchy light rain": "零星小雨",
-    "light rain": "小雨", "moderate rain at times": "间歇中雨",
-    "moderate rain": "中雨",
-    "heavy rain at times": "间歇大雨",
-    "heavy rain": "大雨",
-    "light freezing rain": "小冻雨",
-    "moderate or heavy freezing rain": "中到大冻雨",
-    "light sleet": "小雨夹雪",
-    "moderate or heavy sleet": "中到大雨夹雪",
-    "patchy light snow": "零星小雪",
-    "light snow": "小雪",
-    "patchy moderate snow": "零星中雪",
-    "moderate snow": "中雪",
-    "patchy heavy snow": "零星大雪",
-    "heavy snow": "大雪",
-    "ice pellets": "冰粒",
-    "light rain shower": "小阵雨",
-    "moderate or heavy rain shower": "中到大阵雨",
-    "torrential rain shower": "暴雨",
-    "light sleet showers": "小阵雨夹雪",
-    "moderate or heavy sleet showers": "中到大阵雨夹雪",
-    "light snow showers": "小阵雪",
-    "moderate or heavy snow showers": "中到大阵雪",
-    "light showers of ice pellets": "小阵冰粒",
-    "moderate or heavy showers of ice pellets": "中到大阵冰粒",
-    "patchy light rain with thunder": "零星小雷阵雨",
-    "moderate or heavy rain with thunder": "中到大雷阵雨",
-    "patchy light snow with thunder": "零星小雷阵雪",
-    "moderate or heavy snow with thunder": "中到大雷阵雪",
-}
-
-
 # 彩虹屁本地兜底词库（API 失败时使用）
 FALLBACK_WORDS = [
     "你是我所有温柔的来源和归属。",
@@ -96,22 +49,25 @@ FALLBACK_WORDS = [
 def get_weather():
     """
     获取天气信息。
-    原项目使用的 autodev.openspeech.cn 已失效（签名无效），
-    改用 wttr.in，免费、无需密钥、支持中文。
+    使用 uapis.cn 免费天气 API，直接返回中文、精确到区县。
+    CITY 环境变量支持两种格式：
+      - 纯城市名：绵阳
+      - 城市名,adcode：绵阳,510703（adcode 更精确，可定位到区县）
     """
     try:
-        # 对城市名做 URL 编码，防止特殊字符破坏 URL
-        url = f"https://wttr.in/{quote(CITY)}?format=j1&lang=zh"
-        res = requests.get(url, headers=HEADERS, timeout=15)
+        # 解析 CITY，支持 "城市名" 或 "城市名,adcode"
+        parts = [p.strip() for p in CITY.split(",")]
+        city_name = parts[0]
+        params = {"city": city_name}
+        if len(parts) > 1 and parts[1]:
+            params["adcode"] = parts[1]
+
+        url = "https://uapis.cn/api/v1/misc/weather"
+        res = requests.get(url, params=params, headers=HEADERS, timeout=15)
         res.raise_for_status()
         data = res.json()
-        current = data["current_condition"][0]
-        # wttr.in 在 lang=zh 时会返回 lang_zh 数组，但翻译常不完整
-        raw_desc = (current.get("lang_zh", [{}])[0].get("value")
-                    or current.get("weatherDesc", [{}])[0].get("value", "未知"))
-        # 去掉可能的首尾空白，并用映射表翻译成中文
-        weather_desc = WEATHER_MAP.get(raw_desc.strip().lower(), raw_desc.strip())
-        temperature = math.floor(float(current.get("temp_C", 0)))
+        weather_desc = data.get("weather", "未知")
+        temperature = math.floor(float(data.get("temperature", 0)))
         return weather_desc, temperature
     except Exception as e:
         log.warning("获取天气失败，使用默认值: %s", e)
