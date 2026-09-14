@@ -14,10 +14,10 @@ from wechatpy.client.api import WeChatMessage
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("goodnight")
 
-# 读取环境变量
+# 读取环境变量（注意这里改成了 GOODNIGHT_TEMPLATE_ID）
 APP_ID = os.getenv("APP_ID", "")
 APP_SECRET = os.getenv("APP_SECRET", "")
-TEMPLATE_ID = os.getenv("TEMPLATE_ID", "")
+TEMPLATE_ID = os.getenv("GOODNIGHT_TEMPLATE_ID", "")
 USER_IDS = [uid.strip() for uid in os.getenv("USER_ID", "").split(",") if uid.strip()]
 
 # 静态晚安文案库（每条不超过 20 字）
@@ -48,7 +48,7 @@ GOODNIGHT_MESSAGES = [
 def main():
     """主函数：校验配置、随机选文案、逐个发送"""
     if not all([APP_ID, APP_SECRET, TEMPLATE_ID]):
-        log.error("缺少必要配置：APP_ID / APP_SECRET / TEMPLATE_ID")
+        log.error("缺少必要配置：APP_ID / APP_SECRET / GOODNIGHT_TEMPLATE_ID")
         return
     if not USER_IDS:
         log.error("缺少必要配置：USER_ID")
