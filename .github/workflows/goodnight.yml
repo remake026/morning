@@ -1,0 +1,32 @@
+name: goodnight
+
+on:
+  schedule:
+    # UTC 14:30 = 北京时间 22:30（每天晚上推送）
+    - cron: '30 14 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  send_goodnight:
+    runs-on: ubuntu-latest
+    name: send goodnight message
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: install dependencies
+        run: pip install -r ./requirements.txt
+
+      - name: send goodnight message
+        run: python ./goodnight.py
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
+          USER_ID: ${{ secrets.USER_ID }}
