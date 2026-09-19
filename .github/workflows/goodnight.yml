@@ -2,8 +2,8 @@ name: goodnight
 
 on:
   schedule:
-    # UTC 14:30 = 北京时间 22:30（每天晚上推送）
-    - cron: '30 14 * * *'
+    
+    - cron: '0 12 * * *'
   workflow_dispatch:  # 允许手动触发
 
 jobs:
