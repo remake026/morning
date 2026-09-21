@@ -27,6 +27,9 @@ APP_SECRET = os.getenv("APP_SECRET", "")
 USER_IDS = [uid.strip() for uid in os.getenv("USER_ID", "").split(",") if uid.strip()]
 TEMPLATE_ID = os.getenv("TEMPLATE_ID", "")
 
+# 固定问候语（可改为环境变量控制）
+GREETING = os.getenv("GREETING", "新的一天开始了，今天也要开开心心的哟！😊")
+
 # 通用请求头（模拟浏览器，避免被部分 API 拒绝）
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -73,42 +76,6 @@ SUNNY_TIPS = [
     "无雨的一天，也要开开心心的哦。",
     "今天没雨，记得防晒呀。",
 ]
-
-
-def get_greeting():
-    """根据当前时间返回时段问候语"""
-    hour = datetime.now().hour
-    if 5 <= hour < 9:
-        return random.choice([
-            "早上好呀，新的一天开始啦～",
-            "早安，今天也要元气满满哦！",
-            "起床啦，美好的一天从现在开始。",
-        ])
-    elif 9 <= hour < 12:
-        return random.choice([
-            "上午好，记得吃早餐哦～",
-            "上午好呀，今天也要加油！",
-        ])
-    elif 12 <= hour < 14:
-        return random.choice([
-            "中午好，该吃饭啦～",
-            "午安，记得午休一下哦。",
-        ])
-    elif 14 <= hour < 18:
-        return random.choice([
-            "下午好，困了就喝杯咖啡吧～",
-            "下午好呀，再坚持一下就下班啦。",
-        ])
-    elif 18 <= hour < 22:
-        return random.choice([
-            "晚上好，今天辛苦啦～",
-            "晚上好，记得吃晚饭哦。",
-        ])
-    else:
-        return random.choice([
-            "夜深了，早点休息呀～",
-            "晚安，做个好梦。",
-        ])
 
 
 def get_rain_tip(weather):
@@ -243,7 +210,8 @@ def main():
         wea, temperature = get_weather()
         data = {
             # 使用公众号模板消息最常见的标准字段名，需与模板中的变量名一致。
-            "first": {"value": get_greeting(), "color": "#FF6B6B"},
+            # 问候语固定为 GREETING，不再根据时间段判断
+            "first": {"value": GREETING, "color": "#FF6B6B"},
             "keyword1": {"value": wea, "color": "#173177"},
             "keyword2": {"value": f"{temperature}℃", "color": "#173177"},
             "keyword3": {"value": get_rain_tip(wea), "color": "#4ECDC4"},
