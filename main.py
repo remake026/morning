@@ -28,7 +28,7 @@ USER_IDS = [uid.strip() for uid in os.getenv("USER_ID", "").split(",") if uid.st
 TEMPLATE_ID = os.getenv("TEMPLATE_ID", "")
 
 # 固定问候语（可改为环境变量控制）
-GREETING = os.getenv("GREETING", "新的一天开始了，今天也要开开心心的哟！😊")
+GREETING = os.getenv("GREETING", "新的一天开始了，今天也要开开心心的哟！(≧∇≦)ﾉ")
 
 # 通用请求头（模拟浏览器，避免被部分 API 拒绝）
 HEADERS = {
